@@ -1,0 +1,54 @@
+[<frame>Raspberry PI 0 | ROS |
+	[<package>Connections|
+    	[LIDAR]
+		[Teensy]
+	]|
+    [<package>Interfaces|
+    	[Flask|
+        	port: 7777
+            page: /
+            jquery: /<direction>
+            	|
+                	Jquery POST signals
+                    Manual control page
+        ]
+        [ROS serial|
+        	port: teensy
+        ]
+        [ROS launch]
+        [LIDAR serial]
+    ]|
+    [<package>Functions|
+    	[travel|
+        	[<package>Input|
+            	Location
+            ]
+            [<package>Output|
+            	Return status
+            ]|
+            [<database>Maps]
+            [<database>Current location]
+        ]
+        [Diagnostics|
+        	Self diagnostic
+        ]
+    ]
+]
+[Raspberry PI 1 | Raspbian |
+	[<package>Connections|
+    	[NANO 0| Box| doors control unit]
+        [NANO 1| Light| light control unit]
+        [IP cam| IP protocol]
+    ]|
+    [<package>Interfaces|
+    	[Flask| port: 8080; page:/| User interface| [Tablet| by web]]
+        [Telegram| web| Log and video channels]
+        [PUS| web| post system integration]
+    ]|
+    [<package>Functions|
+    	[Video streaming| Always send 60s videos; to Telegram channel; from IP cam]
+        [HMI| User interface]
+        [Admin panel| Uploading posts]
+        [PUS| Sending information to PUS]
+    ]
+]
