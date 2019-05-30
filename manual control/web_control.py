@@ -8,7 +8,14 @@ __maintainer__ = "Bauyrzhan Ospan"
 __email__ = "bospan@cleverest.tech"
 __status__ = "Development"
 
+from __future__ import print_function
 
+import roslib; roslib.load_manifest('teleop_twist_keyboard')
+import rospy
+
+from geometry_msgs.msg import Twist
+
+import sys, select, termios, tty
 from flask import Flask, render_template, request, Markup, jsonify
 
 
@@ -64,10 +71,6 @@ def motion(key):
         elif key in speedBindings.keys():
             speed = speed * speedBindings[key][0]
             turn = turn * speedBindings[key][1]
-
-            print(vels(speed, turn))
-            if (status == 14):
-                print(msg)
             status = (status + 1) % 15
         else:
             x = 0
