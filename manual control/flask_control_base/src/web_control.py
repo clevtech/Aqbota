@@ -3,7 +3,7 @@
 from __future__ import print_function
 
 __author__ = "Bauyrzhan Ospan"
-__copyright__ = "Copyright 2018, KazPostBot"
+__copyright__ = "Copyright 2018, Aqbota"
 __version__ = "1.0.1"
 __maintainer__ = "Bauyrzhan Ospan"
 __email__ = "bospan@cleverest.tech"

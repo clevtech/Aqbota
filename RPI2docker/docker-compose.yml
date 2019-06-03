@@ -1,0 +1,17 @@
+version: "3"
+services:
+  control:
+    restart: always
+    build: ./control
+    command: python3 -u ./control/lib/test_docker.py
+    ports:
+      - "6161:6161"
+    volumes:
+      - .:/control_unit
+    devices:
+      - "/dev/tty.usbmodem14101:/dev/tty.usbmodem14101"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
