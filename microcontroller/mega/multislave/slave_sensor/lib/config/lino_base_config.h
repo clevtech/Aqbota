@@ -90,7 +90,7 @@ ROBOT ORIENTATION
 
 // ENCODER PINS
 #define MOTOR1_ENCODER_A 2  //Int0 Pin 2
-#define MOTOR1_ENCODER_B 3  //Int1 Pin 3
+#define MOTOR1_ENCODER_B 5  //Int1 Pin 3
 
 #define MOTOR2_ENCODER_A 18 //Int2 Pin 18
 #define MOTOR2_ENCODER_B 19 //Int3 Pin 19

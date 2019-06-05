@@ -107,12 +107,12 @@ ROBOT ORIENTATION
 #define MOTOR_DRIVER L298
 
 #define MOTOR1_PWM 4
-#define MOTOR1_IN_A 44
-#define MOTOR1_IN_B 45
+#define MOTOR1_IN_A 45
+#define MOTOR1_IN_B 7
 
 #define MOTOR2_PWM 13
-#define MOTOR2_IN_A 46
-#define MOTOR2_IN_B 47
+#define MOTOR2_IN_A 47
+#define MOTOR2_IN_B 6
 
 #define MOTOR3_PWM 36   //Placeholder (set to unused mega pin)
 #define MOTOR3_IN_A 37  //Placeholder (set to unused mega pin)
@@ -122,7 +122,7 @@ ROBOT ORIENTATION
 #define MOTOR4_IN_A 40  //Placeholder (set to unused mega pin)
 #define MOTOR4_IN_B 41  //Placeholder (set to unused mega pin)
 
-#define STEERING_PIN 7
+#define STEERING_PIN 9
 
 #define PWM_MAX 255
 #define PWM_MIN -PWM_MAX

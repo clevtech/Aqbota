@@ -162,8 +162,4 @@ void printDebug()
     nh.loginfo(buffer);
     sprintf (buffer, "Encoder FrontRight : %ld", motor2_encoder.read());
     nh.loginfo(buffer);
-    sprintf (buffer, "Encoder RearLeft   : %ld", motor3_encoder.read());
-    nh.loginfo(buffer);
-    sprintf (buffer, "Encoder RearRight  : %ld", motor4_encoder.read());
-    nh.loginfo(buffer);
 }

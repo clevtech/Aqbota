@@ -70,8 +70,6 @@ ros::Subscriber<lino_msgs::PID> pid_sub("pid", PIDCallback);
 
 void setup()
 {
-    steering_servo.attach(STEERING_PIN);
-    steering_servo.write(90);
 
     nh.initNode();
     nh.getHardware()->setBaud(57600);
@@ -88,6 +86,9 @@ void setup()
 
 void loop()
 {
+  motor1_controller.spin(0);
+  motor2_controller.spin(0);
+  
     static unsigned long prev_control_time = 0;
     static unsigned long prev_debug_time = 0;
 
@@ -134,8 +135,8 @@ void moveBase()
   //get the required rpm for each motor based on required velocities, and base used
   Kinematics::rpm req_rpm = kinematics.getRPM(g_req_linear_vel_x, g_req_linear_vel_y, g_req_angular_vel_z);
 
-    printPWM1(motor1_pid.compute(req_rpm.motor1, 0));
-    printPWM2(motor2_pid.compute(req_rpm.motor2, 0));
+    // printPWM1(motor1_pid.compute(req_rpm.motor1, 0));
+    // printPWM2(motor2_pid.compute(req_rpm.motor2, 0));
 
     motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, 0));
     motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, 0));
@@ -148,6 +149,8 @@ void stopBase()
     g_req_linear_vel_x = 0;
     g_req_linear_vel_y = 0;
     g_req_angular_vel_z = 0;
+    motor1_controller.spin(0);
+    motor2_controller.spin(0);
 }
 
 
