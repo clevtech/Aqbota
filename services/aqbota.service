@@ -2,7 +2,7 @@
 Description=Aqbota_roslaunch
 
 [Service]
-User=root
+User=robot
 ExecStart=/home/robot/aqbota.sh
 
 [Install]
