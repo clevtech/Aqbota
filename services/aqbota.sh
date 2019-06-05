@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
 
+bash -c "source ~/.bashrc"
 bash -c "cd ~/catkin_ws/"
 bash -c "source /opt/ros/kinetic/setup.bash"
 bash -c "source ~/catkin_ws/devel/setup.bash"
