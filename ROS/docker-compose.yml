@@ -6,11 +6,11 @@ services:
     command: "ls /dev/sen*"
     ports:
       - "11311:11311"
-    privileged: true
     volumes:
       - ./:/control_unit
+    privileged: true
     devices:
-      - "/dev:/dev"
+      - "/dev/sensor:/dev/sensor"
     logging:
       driver: "json-file"
       options:
