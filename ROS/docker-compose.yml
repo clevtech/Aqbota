@@ -3,7 +3,7 @@ services:
   control:
     image: ubuntu
     restart: always
-    command: "ls /dev/"
+    command: "ls /dev/sen*"
     ports:
       - "11311:11311"
     privileged: true
