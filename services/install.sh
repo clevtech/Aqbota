@@ -20,8 +20,8 @@ echo "Man flask script is created"
 cp ./manual.service /lib/systemd/system/manual.service
 echo "Man flask service is created"
 
-sudo service man-flask start
+sudo service manual start
 echo "Man flask service is started"
-sudo service man-flask enable
+sudo service manual enable
 
 echo "DONE"
