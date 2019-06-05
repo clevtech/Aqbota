@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-cp ./aqbota.sh /home/robot/aqbota.py
+cp ./aqbota.py /home/robot/aqbota.py
 sudo chmod 777 /home/robot/aqbota.py
 echo "Aqbota script is created"
 
