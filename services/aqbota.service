@@ -4,6 +4,8 @@ Description=Aqbota_roslaunch
 [Service]
 User=robot
 ExecStart=/home/robot/aqbota.sh
+TimeoutSec=10
+Restart=on-failure
 
 [Install]
 WantedBy=multi-user.target
