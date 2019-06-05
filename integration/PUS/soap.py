@@ -8,6 +8,7 @@ __status__ = "Development"
 import requests
 import xml.dom.minidom
 import datetime
+from pprint import pprint
 
 
 def pus_data():
@@ -91,35 +92,65 @@ def back():
     pretty_xml_as_string = pretyy.toprettyxml()
     print(pretty_xml_as_string)
 
-# def
 
-def send_sms(ID, PIN):
-    url = "http://89.218.48.181:8080/altsmsgate/altsmsgate.wsdl?"
+def send_sms(phones, pins, place):
+
+    url = "http://92.46.190.22:8080/altsmsgate/altsmsgate.wsdl"
     headers = {'content-type': 'text/xml'}
     file_name = "./templates/sms.xml"
+    text = "Vam postupila posylka v Robopochtaliyon: Astana, Mangilik El prospekt, " \
+           "C4.6. Kod dostupa [pin]. Srok dlya zabora posylki 30 minut."
+    text = "Робот почтальон приехал доставить Вам посылку. Он ждет вас в [place] до [time]." \
+           " Введите [pin] для получения доступа."
+    body = "<sch:Sms>" \
+            "<sch:SmsText>[text]</sch:SmsText>" \
+            "<sch:TelegramText>[text]</sch:TelegramText>" \
+            "<sch:PostKzText>[text]</sch:PostKzText>" \
+            "<sch:PhoneNumber>[phone]</sch:PhoneNumber>" \
+            "</sch:Sms>"
+
     with open(file_name, "r") as file:
         req = file.read()
-        head = req.split("<!--body-->")[0]
-        mid = req.split("<!--body-->")[1]
-        mid_ID = mid.split("[ID]")[0]
-        mid_date = mid.split("[ID]")[1].split("[date]")[0]
-        mid_pin = mid.split("[ID]")[1].split("[date]")[1].split("[pin]")[0]
-        mid_tail = mid.split("[ID]")[1].split("[date]")[1].split("[pin]")[1]
-        tail = req.split("<!--body-->")[2]
-    date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M")
-    body = mid_ID + ID + mid_date + date + mid_pin + PIN + mid_tail
-    request = head
-    request = request + body
-    request = request + tail
-    print(request)
+
+    time = (datetime.datetime.now() + datetime.timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M")
+
+
+    bodies = ""
+
+    for i in range(len(phones)):
+        text0 = text
+        text1 = text0.replace("[time]", time)\
+            .replace("[pin]", pins[i]).replace("[place]", place)
+        body = body.replace("[text]", text1).replace("[phone]", phones[i])
+        bodies += body
+
+    request = req.replace("[body]", bodies)
+    print("Sended request is:")
+    print()
+    pprint(request)
+    print()
     response = requests.post(url, data=request.encode('utf-8'), headers=headers)
     pretyy = xml.dom.minidom.parseString(response.content)
     pretty_xml_as_string = pretyy.toprettyxml()
+    print()
+    print("Responce is: ")
+    print()
     print(pretty_xml_as_string)
     return 1
 
 
+def check_sms():
+    url = "http://92.46.190.22:8080/altsmsgate/altsmsgate.wsdl"
+    headers = {'content-type': 'text/xml'}
+    file_name = "./templates/checksms.xml"
+    with open(file_name, "r") as file:
+        req = file.read()
+        response = requests.post(url, data=req.encode('utf-8'), headers=headers)
+        pretyy = xml.dom.minidom.parseString(response.content)
+        pretty_xml_as_string = pretyy.toprettyxml()
+        print(pretty_xml_as_string)
+
 if __name__ == "__main__":
     # pus_data()
     # back()
-    send_sms("87778694240", "0605")
+    send_sms(["77778694240"], ["0605"], "Astana HUB")

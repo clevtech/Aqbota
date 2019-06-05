@@ -4,18 +4,11 @@
    <soapenv:Body>
       <sch:SendRequest>
          <sch:Authentication>
-            <sch:UserName>test111</sch:UserName>
-            <sch:Password>test111</sch:Password>
+            <sch:UserName>robopostman</sch:UserName>
+            <sch:Password>Ubj0YlvYsGvhHDc9</sch:Password>
          </sch:Authentication>
        <sch:SmsList>
-            <!--body-->
-            <sch:Sms>
-                <sch:PhoneNumber>[ID]</sch:PhoneNumber>
-               <sch:SmsText>[date] Vam postupila posylka v Robopochtaliyon: Astana, Mangilik El prospekt, C4.6. Kod dostupa [pin]. Srok dlya zabora posylki 30 minut.</sch:SmsText>
-               <sch:TelegramText>Test</sch:TelegramText>
-               <sch:PostKzText>Test</sch:PostKzText>
-            </sch:Sms>
-          <!--body-->
+           [body]
          </sch:SmsList>
       </sch:SendRequest>
    </soapenv:Body>
