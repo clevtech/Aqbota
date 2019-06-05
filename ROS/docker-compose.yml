@@ -6,6 +6,7 @@ services:
     command: "ls /dev/"
     ports:
       - "11311:11311"
+    privileged: true
     volumes:
       - ./:/control_unit
     devices:
