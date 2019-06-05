@@ -3,7 +3,7 @@ Description=Aqbota_roslaunch
 
 [Service]
 User=robot
-ExecStart=/home/robot/aqbota.py
+ExecStart=/home/robot/aqbota.sh
 TimeoutSec=600
 Restart=on-failure
 
