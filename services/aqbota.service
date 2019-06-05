@@ -1,0 +1,9 @@
+[Unit]
+Description=Aqbota_roslaunch
+
+[Service]
+User=root
+ExecStart=/home/robot/aqbota.sh
+
+[Install]
+WantedBy=multi-user.target

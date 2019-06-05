@@ -1,13 +1,12 @@
 version: "3"
 services:
   control:
-    image: ros:latest
     restart: always
     command: "ifconfig"
     ports:
       - "11311:11311"
     volumes:
-      - .:/control_unit
+      - ./:/control_unit
     devices:
       - "/dev:/dev"
     logging:
