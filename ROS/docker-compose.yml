@@ -3,14 +3,14 @@ services:
   control:
     image: ubuntu
     restart: always
-    command: "ls /dev/sen*"
+    command: "ls /dev/ttyACM*"
     ports:
       - "11311:11311"
     volumes:
       - ./:/control_unit
     privileged: true
     devices:
-      - "/dev/sensor:/dev/sensor"
+      - "/dev:/dev"
     logging:
       driver: "json-file"
       options:
