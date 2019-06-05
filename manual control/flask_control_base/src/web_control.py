@@ -16,7 +16,6 @@ import rospy
 
 from geometry_msgs.msg import Twist
 
-import sys, select, termios, tty
 from flask import Flask, render_template, request, Markup, jsonify
 
 
@@ -24,8 +23,6 @@ app = Flask(__name__)  # Creating new flask app
 
 
 def init_motion():
-    settings = termios.tcgetattr(sys.stdin)
-
     pub = rospy.Publisher('cmd_vel', Twist, queue_size=1)
     rospy.init_node('flask_control_base')
 
