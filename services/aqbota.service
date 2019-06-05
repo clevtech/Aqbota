@@ -9,7 +9,6 @@ Restart=on-failure
 Environment="LINOLIDAR=rplidar"
 Environment="LINOBASE=2wd"
 Environment="CATKIN_SHELL=bash"
-Environment="
 
 
 [Install]

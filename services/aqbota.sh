@@ -1,17 +1,3 @@
 #!/usr/bin/env bash
 
-#bash -c "script /dev/null"
-#bash -c "source ~/.bashrc"
-#bash -c "cd ~/catkin_ws/"
-#bash -c "sudo chmod 777 /opt/ros/kinetic/setup.sh"
-#bash -c "sudo /opt/ros/kinetic/setup.sh"
-#bash -c "sudo chmod 777 /home/robot/catkin_ws/devel/setup.sh"
-#bash -c "sudo /home/robot/catkin_ws/devel/setup.sh"
-#bash -c "sudo chmod 777 /home/robot/linorobot_ws/devel/setup.sh"
-#bash -c "sudo /home/robot/linorobot_ws/devel/setup.sh"
-#bash -c "export LINOLIDAR=rplidar"
-#bash -c "export LINOBASE=2wd"
-#bash -c "/opt/ros/kinetic/bin/catkin_make"
 bash -c "source /home/robot/linorobot_ws/devel/setup.bash && roslaunch linorobot aqbota.launch"
-#bash -c "script /dev/null"
-#bash -c "screen roslaunch linorobot aqbota.launch"

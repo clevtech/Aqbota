@@ -12,3 +12,16 @@ echo "Aqbota service is started"
 sudo service aqbota enable
 
 echo "Aqbota is installed"
+
+cp ./man-flask.sh /home/robot/man-flask.sh
+sudo chmod 777 /home/robot/man-flask.sh
+echo "Man flask script is created"
+
+cp ./manual.service /lib/systemd/system/manual.service
+echo "Man flask service is created"
+
+sudo service man-flask start
+echo "Man flask service is started"
+sudo service man-flask enable
+
+echo "DONE"

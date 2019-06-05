@@ -1,13 +1,15 @@
 [Unit]
-Description=Flask web server
-
-[Install]
-WantedBy=multi-user.target
+Description=Aqbota_roslaunch
 
 [Service]
 User=robot
-PermissionsStartOnly=true
-ExecStart=/home/manivannan/server.py
+ExecStart=/home/robot/man-flask.sh
 TimeoutSec=600
 Restart=on-failure
-RuntimeDirectoryMode=755
+Environment="LINOLIDAR=rplidar"
+Environment="LINOBASE=2wd"
+Environment="CATKIN_SHELL=bash"
+
+
+[Install]
+WantedBy=multi-user.target
