@@ -1,6 +1,7 @@
 version: "3"
 services:
   control:
+    image: ubuntu
     restart: always
     command: "ls /dev/"
     ports:
