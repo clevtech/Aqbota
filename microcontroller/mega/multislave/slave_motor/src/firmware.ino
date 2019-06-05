@@ -47,7 +47,9 @@ PID motor2_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 PID motor3_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 PID motor4_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 
+
 Kinematics kinematics(Kinematics::LINO_BASE, MAX_RPM, WHEEL_DIAMETER, FR_WHEELS_DISTANCE, LR_WHEELS_DISTANCE);
+
 
 float g_req_linear_vel_x = 0;
 float g_req_linear_vel_y = 0;
@@ -65,11 +67,6 @@ ros::NodeHandle nh;
 ros::Subscriber<geometry_msgs::Twist> cmd_sub("cmd_vel", commandCallback);
 ros::Subscriber<lino_msgs::PID> pid_sub("pid", PIDCallback);
 
-lino_msgs::Imu raw_imu_msg;
-ros::Publisher raw_imu_pub("raw_imu", &raw_imu_msg);
-
-lino_msgs::Velocities raw_vel_msg;
-ros::Publisher raw_vel_pub("raw_vel", &raw_vel_msg);
 
 void setup()
 {
@@ -80,8 +77,6 @@ void setup()
     nh.getHardware()->setBaud(57600);
     nh.subscribe(pid_sub);
     nh.subscribe(cmd_sub);
-    nh.advertise(raw_vel_pub);
-    nh.advertise(raw_imu_pub);
 
     while (!nh.connected())
     {
@@ -94,9 +89,7 @@ void setup()
 void loop()
 {
     static unsigned long prev_control_time = 0;
-    static unsigned long prev_imu_time = 0;
     static unsigned long prev_debug_time = 0;
-    static bool imu_is_initialized;
 
     //this block drives the robot based on defined rate
     if ((millis() - prev_control_time) >= (1000 / COMMAND_RATE))
@@ -111,35 +104,6 @@ void loop()
         stopBase();
     }
 
-    //this block publishes the IMU data based on defined rate
-    if ((millis() - prev_imu_time) >= (1000 / IMU_PUBLISH_RATE))
-    {
-        //sanity check if the IMU is connected
-        if (!imu_is_initialized)
-        {
-            imu_is_initialized = initIMU();
-
-            if(imu_is_initialized)
-                nh.loginfo("IMU Initialized");
-            else
-                nh.logfatal("IMU failed to initialize. Check your IMU connection.");
-        }
-        else
-        {
-            publishIMU();
-        }
-        prev_imu_time = millis();
-    }
-
-    //this block displays the encoder readings. change DEBUG to 0 if you don't want to display
-    if(DEBUG)
-    {
-        if ((millis() - prev_debug_time) >= (1000 / DEBUG_RATE))
-        {
-            printDebug();
-            prev_debug_time = millis();
-        }
-    }
     //call all the callbacks waiting to be called
     nh.spinOnce();
 }
@@ -167,46 +131,16 @@ void commandCallback(const geometry_msgs::Twist& cmd_msg)
 
 void moveBase()
 {
-    //get the required rpm for each motor based on required velocities, and base used
-    Kinematics::rpm req_rpm = kinematics.getRPM(g_req_linear_vel_x, g_req_linear_vel_y, g_req_angular_vel_z);
+  //get the required rpm for each motor based on required velocities, and base used
+  Kinematics::rpm req_rpm = kinematics.getRPM(g_req_linear_vel_x, g_req_linear_vel_y, g_req_angular_vel_z);
 
-    //get the current speed of each motor
-    int current_rpm1 = motor1_encoder.getRPM();
-    int current_rpm2 = motor2_encoder.getRPM();
-    int current_rpm3 = motor3_encoder.getRPM();
-    int current_rpm4 = motor4_encoder.getRPM();
+    printPWM1(motor1_pid.compute(req_rpm.motor1, 0));
+    printPWM2(motor2_pid.compute(req_rpm.motor2, 0));
 
-    //the required rpm is capped at -/+ MAX_RPM to prevent the PID from having too much error
-    //the PWM value sent to the motor driver is the calculated PID based on required RPM vs measured RPM
-
-    printPWM(motor1_pid.compute(req_rpm.motor1, current_rpm1));
-
-    motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, current_rpm1));
-    motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, current_rpm2));
-    motor3_controller.spin(motor3_pid.compute(req_rpm.motor3, current_rpm3));
-    motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, current_rpm4));
-
-    Kinematics::velocities current_vel;
-
-    if(kinematics.base_platform == Kinematics::ACKERMANN || kinematics.base_platform == Kinematics::ACKERMANN1)
-    {
-        float current_steering_angle;
-
-        current_steering_angle = steer(g_req_angular_vel_z);
-        current_vel = kinematics.getVelocities(current_steering_angle, current_rpm1, current_rpm2);
-    }
-    else
-    {
-        current_vel = kinematics.getVelocities(current_rpm1, current_rpm2, current_rpm3, current_rpm4);
-    }
-
-    //pass velocities to publisher object
-    raw_vel_msg.linear_x = current_vel.linear_x;
-    raw_vel_msg.linear_y = current_vel.linear_y;
-    raw_vel_msg.angular_z = current_vel.angular_z;
-
-    //publish raw_vel_msg
-    raw_vel_pub.publish(&raw_vel_msg);
+    motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, 0));
+    motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, 0));
+    motor3_controller.spin(motor3_pid.compute(req_rpm.motor3, 0));
+    motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, 0));
 }
 
 void stopBase()
@@ -216,58 +150,25 @@ void stopBase()
     g_req_angular_vel_z = 0;
 }
 
-void publishIMU()
-{
-    //pass accelerometer data to imu object
-    raw_imu_msg.linear_acceleration = readAccelerometer();
-
-    //pass gyroscope data to imu object
-    raw_imu_msg.angular_velocity = readGyroscope();
-
-    //pass accelerometer data to imu object
-    raw_imu_msg.magnetic_field = readMagnetometer();
-
-    //publish raw_imu_msg
-    raw_imu_pub.publish(&raw_imu_msg);
-}
-
-float steer(float steering_angle)
-{
-    //steering function for ACKERMANN base
-    float servo_steering_angle;
-
-    steering_angle = constrain(steering_angle, -MAX_STEERING_ANGLE, MAX_STEERING_ANGLE);
-    servo_steering_angle = mapFloat(steering_angle, -MAX_STEERING_ANGLE, MAX_STEERING_ANGLE, PI, 0) * (180 / PI);
-
-    steering_servo.write(servo_steering_angle);
-
-    return steering_angle;
-}
 
 float mapFloat(float x, float in_min, float in_max, float out_min, float out_max)
 {
     return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
 }
 
-void printDebug()
+
+void printPWM1(long val)
 {
     char buffer[50];
 
-    sprintf (buffer, "Encoder FrontLeft  : %ld", motor1_encoder.read());
-    nh.loginfo(buffer);
-    sprintf (buffer, "Encoder FrontRight : %ld", motor2_encoder.read());
-    nh.loginfo(buffer);
-    sprintf (buffer, "Encoder RearLeft   : %ld", motor3_encoder.read());
-    nh.loginfo(buffer);
-    sprintf (buffer, "Encoder RearRight  : %ld", motor4_encoder.read());
+    sprintf (buffer, "PWM1 value is  : %ld", val);
     nh.loginfo(buffer);
 }
 
-
-void printPWM(long val)
+void printPWM2(long val)
 {
     char buffer[50];
 
-    sprintf (buffer, "PWM value is  : %ld", val);
+    sprintf (buffer, "PWM2 value is  : %ld", val);
     nh.loginfo(buffer);
 }
