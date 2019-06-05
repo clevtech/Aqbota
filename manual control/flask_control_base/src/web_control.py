@@ -55,7 +55,7 @@ def init_motion():
         'b': (0, 0, -1, 0),
     }
 
-    return settings, pub, speed, turn, x, y, z, th, status, moveBindings
+    return pub, speed, turn, x, y, z, th, status, moveBindings
 
 
 def motion(key):
@@ -102,7 +102,7 @@ def ajax_request(direction):
         motion(direction)
     return jsonify()
 
-settings, pub, speed, turn, x, y, z, th, status, moveBindings = init_motion()
+pub, speed, turn, x, y, z, th, status, moveBindings = init_motion()
 
 # Main flask app
 if __name__ == "__main__":
