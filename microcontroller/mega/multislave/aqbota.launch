@@ -27,5 +27,5 @@
     </node>
 
     <!-- Run Linorobot compatible laser drivers -->
-    <include file="$(find linorobot)/launch/include/laser.launch" />
+    <!-- include file="$(find linorobot)/launch/include/laser.launch" / -->
 </launch>
