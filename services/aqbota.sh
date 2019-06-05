@@ -12,7 +12,6 @@
 #bash -c "export LINOLIDAR=rplidar"
 #bash -c "export LINOBASE=2wd"
 #bash -c "/opt/ros/kinetic/bin/catkin_make"
-bash -c "source /home/robot/linorobot_ws/devel/setup.bash"
-bash -c "roscore"
+bash -c "source /home/robot/linorobot_ws/devel/setup.bash && roslaunch linorobot aqbota.launch"
 #bash -c "script /dev/null"
 #bash -c "screen roslaunch linorobot aqbota.launch"

@@ -1,7 +1,6 @@
 version: "3"
 services:
   control:
-    user: root
     image: ubuntu
     restart: always
     command: "ls /dev/ttyACM*"
