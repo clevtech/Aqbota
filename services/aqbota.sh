@@ -9,4 +9,5 @@
 #bash -c "export LINOBASE=2wd"
 #bash -c "/opt/ros/kinetic/bin/catkin_make"
 #bash -c "roslaunch linorobot aqbota.launch"
+bash -c "script /dev/null"
 bash -c "screen roslaunch linorobot aqbota.launch"
