@@ -9,12 +9,11 @@ Controller::Controller(driver motor_driver, int pwm_pin, int motor_pinA, int mot
     switch (motor_driver)
     {
         case L298:
-            pinMode(pwm_pin_, OUTPUT);
             pinMode(motor_pinA_, OUTPUT);
             pinMode(motor_pinB_, OUTPUT);
 
-            //ensure that the motor is in neutral state during bootup
-            analogWrite(pwm_pin_, abs(0));
+            digitalWrite(motor_pinA_, LOW);
+            digitalWrite(motor_pinB_, LOW);
 
             break;
 
@@ -53,7 +52,10 @@ void Controller::spin(int pwm)
                 digitalWrite(motor_pinA_, LOW);
                 digitalWrite(motor_pinB_, HIGH);
             }
-            analogWrite(pwm_pin_, abs(pwm));
+            else {
+              digitalWrite(motor_pinA_, LOW);
+              digitalWrite(motor_pinB_, LOW);
+            }
 
             break;
 

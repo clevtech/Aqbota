@@ -32,20 +32,14 @@
 
 Encoder motor1_encoder(MOTOR1_ENCODER_A, MOTOR1_ENCODER_B, COUNTS_PER_REV);
 Encoder motor2_encoder(MOTOR2_ENCODER_A, MOTOR2_ENCODER_B, COUNTS_PER_REV);
-Encoder motor3_encoder(MOTOR3_ENCODER_A, MOTOR3_ENCODER_B, COUNTS_PER_REV);
-Encoder motor4_encoder(MOTOR4_ENCODER_A, MOTOR4_ENCODER_B, COUNTS_PER_REV);
 
 Servo steering_servo;
 
 Controller motor1_controller(Controller::MOTOR_DRIVER, MOTOR1_PWM, MOTOR1_IN_A, MOTOR1_IN_B);
 Controller motor2_controller(Controller::MOTOR_DRIVER, MOTOR2_PWM, MOTOR2_IN_A, MOTOR2_IN_B);
-Controller motor3_controller(Controller::MOTOR_DRIVER, MOTOR3_PWM, MOTOR3_IN_A, MOTOR3_IN_B);
-Controller motor4_controller(Controller::MOTOR_DRIVER, MOTOR4_PWM, MOTOR4_IN_A, MOTOR4_IN_B);
 
 PID motor1_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 PID motor2_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
-PID motor3_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
-PID motor4_pid(PWM_MIN, PWM_MAX, K_P, K_I, K_D);
 
 
 Kinematics kinematics(Kinematics::LINO_BASE, MAX_RPM, WHEEL_DIAMETER, FR_WHEELS_DISTANCE, LR_WHEELS_DISTANCE);
@@ -71,6 +65,9 @@ ros::Subscriber<lino_msgs::PID> pid_sub("pid", PIDCallback);
 void setup()
 {
 
+  motor1_controller.spin(0);
+  motor2_controller.spin(0);
+
     nh.initNode();
     nh.getHardware()->setBaud(57600);
     nh.subscribe(pid_sub);
@@ -80,15 +77,13 @@ void setup()
     {
         nh.spinOnce();
     }
-    nh.loginfo("LINOBASE CONNECTED");
+    nh.loginfo("MOTOR CONTROLLER IS CONNECTED");
     delay(1);
 }
 
 void loop()
 {
-  motor1_controller.spin(0);
-  motor2_controller.spin(0);
-  
+
     static unsigned long prev_control_time = 0;
     static unsigned long prev_debug_time = 0;
 
@@ -100,7 +95,7 @@ void loop()
     }
 
     //this block stops the motor when no command is received
-    if ((millis() - g_prev_command_time) >= 400)
+    if ((millis() - g_prev_command_time) >= 100)
     {
         stopBase();
     }
@@ -115,8 +110,6 @@ void PIDCallback(const lino_msgs::PID& pid)
     //this callback receives pid object where P,I, and D constants are stored
     motor1_pid.updateConstants(pid.p, pid.i, pid.d);
     motor2_pid.updateConstants(pid.p, pid.i, pid.d);
-    motor3_pid.updateConstants(pid.p, pid.i, pid.d);
-    motor4_pid.updateConstants(pid.p, pid.i, pid.d);
 }
 
 void commandCallback(const geometry_msgs::Twist& cmd_msg)
@@ -126,7 +119,6 @@ void commandCallback(const geometry_msgs::Twist& cmd_msg)
     g_req_linear_vel_x = cmd_msg.linear.x;
     g_req_linear_vel_y = cmd_msg.linear.y;
     g_req_angular_vel_z = cmd_msg.angular.z;
-
     g_prev_command_time = millis();
 }
 
@@ -135,22 +127,20 @@ void moveBase()
   //get the required rpm for each motor based on required velocities, and base used
   Kinematics::rpm req_rpm = kinematics.getRPM(g_req_linear_vel_x, g_req_linear_vel_y, g_req_angular_vel_z);
 
-    // printPWM1(motor1_pid.compute(req_rpm.motor1, 0));
-    // printPWM2(motor2_pid.compute(req_rpm.motor2, 0));
+    printPWM1(motor1_pid.compute(req_rpm.motor1, 0));
+    printPWM2(motor2_pid.compute(req_rpm.motor2, 0));
 
     motor1_controller.spin(motor1_pid.compute(req_rpm.motor1, 0));
     motor2_controller.spin(motor2_pid.compute(req_rpm.motor2, 0));
-    motor3_controller.spin(motor3_pid.compute(req_rpm.motor3, 0));
-    motor4_controller.spin(motor4_pid.compute(req_rpm.motor4, 0));
 }
 
 void stopBase()
 {
+    motor1_controller.spin(0);
+    motor2_controller.spin(0);
     g_req_linear_vel_x = 0;
     g_req_linear_vel_y = 0;
     g_req_angular_vel_z = 0;
-    motor1_controller.spin(0);
-    motor2_controller.spin(0);
 }
 
 
@@ -164,7 +154,7 @@ void printPWM1(long val)
 {
     char buffer[50];
 
-    sprintf (buffer, "PWM1 value is  : %ld", val);
+    sprintf (buffer, "Motor 1 is  : %ld", val);
     nh.loginfo(buffer);
 }
 
@@ -172,6 +162,6 @@ void printPWM2(long val)
 {
     char buffer[50];
 
-    sprintf (buffer, "PWM2 value is  : %ld", val);
+    sprintf (buffer, "Motor 2 is  : %ld", val);
     nh.loginfo(buffer);
 }
