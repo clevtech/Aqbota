@@ -83,7 +83,12 @@ void setup()
 
 void loop()
 {
+    if(!nh.connected()){
+      stopBase();
+    }
 
+    else {
+      
     static unsigned long prev_control_time = 0;
     static unsigned long prev_debug_time = 0;
 
@@ -102,6 +107,7 @@ void loop()
 
     //call all the callbacks waiting to be called
     nh.spinOnce();
+  }
 }
 
 void PIDCallback(const lino_msgs::PID& pid)
