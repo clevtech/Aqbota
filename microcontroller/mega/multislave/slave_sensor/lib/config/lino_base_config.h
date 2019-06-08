@@ -26,7 +26,7 @@
 #define K_D 0.5 // D constant
 
 //define your robot' specs here
-#define MAX_RPM 330               // motor's maximum RPM
+#define MAX_RPM 50               // motor's maximum RPM
 #define COUNTS_PER_REV 1550       // wheel encoder's no of ticks per rev
 #define WHEEL_DIAMETER 0.10       // wheel's diameter in meters
 #define PWM_BITS 8                // PWM Resolution of the microcontroller
@@ -89,11 +89,11 @@ ROBOT ORIENTATION
 
 
 // ENCODER PINS
-#define MOTOR1_ENCODER_A 5  //Int0 Pin 2
-#define MOTOR1_ENCODER_B 2  //Int1 Pin 3
+#define MOTOR1_ENCODER_A 2  //Int0 Pin 2
+#define MOTOR1_ENCODER_B 5  //Int1 Pin 3
 
-#define MOTOR2_ENCODER_A 19 //Int2 Pin 18
-#define MOTOR2_ENCODER_B 18 //Int3 Pin 19
+#define MOTOR2_ENCODER_A 18 //Int2 Pin 18
+#define MOTOR2_ENCODER_B 19 //Int3 Pin 19
 
 #define MOTOR3_ENCODER_A 30  //Placeholder (set to unused mega pin)
 #define MOTOR3_ENCODER_B 31  //Placeholder (set to unused mega pin)

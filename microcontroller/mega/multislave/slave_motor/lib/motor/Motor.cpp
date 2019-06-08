@@ -11,28 +11,8 @@ Controller::Controller(driver motor_driver, int pwm_pin, int motor_pinA, int mot
         case L298:
             pinMode(motor_pinA_, OUTPUT);
             pinMode(motor_pinB_, OUTPUT);
-
             digitalWrite(motor_pinA_, LOW);
             digitalWrite(motor_pinB_, LOW);
-
-            break;
-
-        case BTS7960:
-            pinMode(motor_pinA_, OUTPUT);
-            pinMode(motor_pinB_, OUTPUT);
-
-            //ensure that the motor is in neutral state during bootup
-            analogWrite(motor_pinB_, 0);
-            analogWrite(motor_pinA_, 0);
-
-            break;
-
-        case ESC:
-            motor_.attach(motor_pinA_);
-
-            //ensure that the motor is in neutral state during bootup
-            motor_.writeMicroseconds(1500);
-
             break;
     }
 }
@@ -47,40 +27,18 @@ void Controller::spin(int pwm)
                 digitalWrite(motor_pinA_, HIGH);
                 digitalWrite(motor_pinB_, LOW);
             }
-            else if(pwm < 0)
-            {
-                digitalWrite(motor_pinA_, LOW);
-                digitalWrite(motor_pinB_, HIGH);
-            }
-            else {
-              digitalWrite(motor_pinA_, LOW);
-              digitalWrite(motor_pinB_, LOW);
-            }
-
-            break;
-
-        case BTS7960:
-            if (pwm > 0)
-            {
-                analogWrite(motor_pinA_, 0);
-                analogWrite(motor_pinB_, abs(pwm));
-            }
-            else if (pwm < 0)
-            {
-                analogWrite(motor_pinB_, 0);
-                analogWrite(motor_pinA_, abs(pwm));
-            }
             else
             {
-                analogWrite(motor_pinB_, 0);
-                analogWrite(motor_pinA_, 0);
+              if(pwm < 0)
+                {
+                  digitalWrite(motor_pinA_, LOW);
+                  digitalWrite(motor_pinB_, HIGH);
+                }
+              else {
+                digitalWrite(motor_pinA_, LOW);
+                digitalWrite(motor_pinB_, LOW);
+                }
             }
-
-            break;
-
-        case ESC:
-            motor_.writeMicroseconds(1500 + pwm);
-
             break;
     }
 }

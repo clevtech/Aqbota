@@ -28,7 +28,7 @@
 #include "Arduino.h"
 #include "Kinematics.h"
 
-Kinematics::Kinematics(base robot_base, int motor_max_rpm, float wheel_diameter, 
+Kinematics::Kinematics(base robot_base, int motor_max_rpm, float wheel_diameter,
 float wheels_x_distance, float wheels_y_distance):
     base_platform(robot_base),
     max_rpm_(motor_max_rpm),
@@ -36,7 +36,7 @@ float wheels_x_distance, float wheels_y_distance):
     wheels_y_distance_(wheels_y_distance),
     wheel_circumference_(PI * wheel_diameter),
     total_wheels_(getTotalWheels(robot_base))
-{    
+{
 }
 
 Kinematics::rpm Kinematics::calculateRPM(float linear_x, float linear_y, float angular_z)
@@ -88,18 +88,7 @@ Kinematics::rpm Kinematics::getRPM(float linear_x, float linear_y, float angular
 {
     Kinematics::rpm rpm;
 
-    if(base_platform == DIFFERENTIAL_DRIVE || base_platform == SKID_STEER)
-    {
         rpm = calculateRPM(linear_x, 0.0 , angular_z);
-    }
-    else if(base_platform == ACKERMANN || base_platform == ACKERMANN1)
-    {
-        rpm = calculateRPM(linear_x, 0.0, 0.0);
-    }
-    else if(base_platform == MECANUM)
-    {
-        rpm = calculateRPM(linear_x, linear_y, angular_z);
-    }
 
     return rpm;
 }

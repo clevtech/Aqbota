@@ -1,13 +1,13 @@
 #ifndef MOTOR_H
 #define MOTOR_H
 
-#include <Servo.h> 
+#include <Servo.h>
 #include <Arduino.h>
 
 class Controller
 {
     public:
-        enum driver {L298, BTS7960, ESC};
+        enum driver {L298};
         Controller(driver motor_driver, int pwm_pin, int motor_pinA, int motor_pinB);
         void spin(int pwm);
 
