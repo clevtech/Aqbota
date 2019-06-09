@@ -1,0 +1,50 @@
+version: "3"
+services:
+  tcp-server:
+    restart: always
+    build: ./control
+    command: python3 -u ./control/tcp-server.py
+    ports:
+      - "8686:8686"
+    volumes:
+      - ./data:/robot_volume
+    devices:
+      - "/dev/:/dev/"
+    links:
+      - database
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+  mongo-express:
+    restart: always
+    image: mongo-express
+    environment:
+        - ME_CONFIG_MONGODB_SERVER=database
+        - ME_CONFIG_MONGODB_PORT=27017
+        - ME_CONFIG_MONGODB_ENABLE_ADMIN=false
+        - ME_CONFIG_MONGODB_AUTH_DATABASE=robot
+        - ME_CONFIG_BASICAUTH_USERNAME=robot
+        - ME_CONFIG_BASICAUTH_PASSWORD=1
+    ports:
+      - "8081:8081"
+    links:
+      - database
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    depends_on:
+      - database
+  database:
+    restart: always
+    image: mongo:3.0.2
+    volumes:
+      - ./data:/robot_volume
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"

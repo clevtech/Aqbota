@@ -172,8 +172,8 @@ void moveBase()
     // printPWM2(now_rpm.motor2);
 
     KinectRelay();
-    printPWM1(RPM1);
-    printPWM2(RPM2);
+    // printPWM1(RPM1);
+    // printPWM2(RPM2);
     motor1_controller.spin(RPM1);
     motor2_controller.spin(RPM2);
 }
