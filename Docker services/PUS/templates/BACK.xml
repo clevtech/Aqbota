@@ -4,8 +4,8 @@
    <soapenv:Body>
       <ws:PostomatDLVRPOWithdraw>
         <barCode>BARCODE</barCode>
-         <postomatCode>INDEX</postomatCode>
-         <userCode>ROBOT</userCode>
+         <postomatCode>600100</postomatCode>
+         <userCode>Robot</userCode>
       </ws:PostomatDLVRPOWithdraw>
    </soapenv:Body>
 </soapenv:Envelope>

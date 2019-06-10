@@ -8,7 +8,7 @@
             <sch:Password>test111</sch:Password>
          </sch:Authentication>
          <!--1 to 100 repetitions:-->
-         <sch:AltSmsId>68786781</sch:AltSmsId>
+         [body]
       </sch:StatusRequest>
    </soapenv:Body>
 </soapenv:Envelope>

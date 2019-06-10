@@ -48,3 +48,20 @@ services:
       options:
         max-size: "1m"
         max-file: "10"
+  pus-client:
+    restart: always
+    build: ./PUS
+    command: python3 -u ./PUS/pus.py
+    ports:
+      - "8787:8787"
+    volumes:
+      - ./data:/robot_volume
+    links:
+      - database
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    depends_on:
+      - database
