@@ -9,7 +9,7 @@ import time
 import socket
 
 # Задаем адрес сервера
-SERVER_ADDRESS = ('0.0.0.0', 8686)
+SERVER_ADDRESS = ('0.0.0.0', 6767)
 
 # Настраиваем сокет
 server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -19,7 +19,7 @@ print('Door and light control server is working...')
 
 
 def serial_ports():
-    ports = glob.glob('/dev/nano')
+    ports = glob.glob('/dev/ttyUSB0')
 
     result = ports
     return result
@@ -51,13 +51,11 @@ if __name__ == "__main__":
 
     nano = None
     # nano = connect_to()
-    print(glob.glob('/dev/motor'))
-    # Слушаем запросы
     while True:
         connection, address = server_socket.accept()
         print("new connection from {address}".format(address=address))
 
-        data = connection.recv(1024)
+        data = connection.recv(1024).decode("utf-8")
 
         print(str(data))
         if nano:

@@ -11,14 +11,33 @@ import datetime
 from pprint import pprint
 import re
 from pymongo import MongoClient
-import secrets
+from random import sample
+import socket
+import json
+import os
+
+
+def send_post(url, data, headers):
+    while 1:
+        try:
+            res = requests.post(url, data, headers)
+            break
+        except:
+            print("Сервер не дает ответа, пробую еще раз")
+    return res
 
 
 def save_db(log, name):
-    # client = MongoClient('mongodb://database:27017/')
-    # db = client['PUS']
-    # collection = db[name]
-    # collection.insert_one(log)
+    client = MongoClient('mongodb://database:27017/')
+    db = client['robot']
+    collection = db[name]
+    try:
+        collection.insert_one(log)
+    except:
+        try:
+            del log["_id"]
+        except KeyError:
+            pass
     print("===========================================")
     print("Сохранил в логи следующее: ")
     pprint(log)
@@ -28,9 +47,19 @@ def save_db(log, name):
 
 def take_db(barcode, name):
     client = MongoClient('mongodb://database:27017/')
-    db = client['PUS']
+    db = client['robot']
     collection = db[name]
     result = collection.find_one({"barcode": barcode})
+    return result
+
+
+def find_db(name, dic):
+    client = MongoClient('mongodb://database:27017/')
+    db = client['robot']
+    collection = db[name]
+    result = collection.find_one(dic)
+    print(dic)
+    print(result)
     return result
 
 
@@ -41,6 +70,8 @@ def printxml(res):
 
 
 def pus_data(barcode, address):
+    barcode = barcode.replace("\n", "")
+    address = address.replace("\n", "")
     url = "http://pls-test.post.kz/api/service/postamatHierarchy?wsdl"
     url2 = "http://pls-test.post.kz/api/service/postamat?wsdl"
 
@@ -58,7 +89,7 @@ def pus_data(barcode, address):
         pprint(req)
         print("--------------------------------------------------")
 
-    response = requests.post(url, data=req.encode('utf-8'), headers=headers)
+    response = send_post(url, data=req.replace("\n", "").encode('utf-8'), headers=headers)
 
     print("=================================================")
     print("Принял ответ от сервера: ")
@@ -76,7 +107,7 @@ def pus_data(barcode, address):
         pprint(req)
         print("--------------------------------------------------")
 
-    response2 = requests.post(url2, data=req.encode('utf-8'), headers=headers)
+    response2 = send_post(url2, data=req.replace("\n", "").encode('utf-8'), headers=headers)
     print("=================================================")
     print("Принял ответ от сервера: ")
     print()
@@ -104,12 +135,13 @@ def pus_data(barcode, address):
     save_db(log, "data")
 
     if cash_check:
-        return log["phone"]
+        return True
     else:
         return False
 
 
 def income(barcode):
+    barcode = barcode.replace("\n", "")
     url = "http://pls-test.post.kz/api/service/postamat?wsdl"
 
     headers = {'content-type': 'text/xml'}
@@ -125,7 +157,7 @@ def income(barcode):
         pprint(req)
         print("--------------------------------------------------")
 
-    response = requests.post(url, data=req.encode('utf-8'), headers=headers)
+    response = send_post(url, data=req.replace("\n", "").encode('utf-8'), headers=headers)
     print("=================================================")
     print("Принял ответ от сервера: ")
     print()
@@ -137,15 +169,14 @@ def income(barcode):
 
     info = re.findall("<ns3:name>(.*?)</ns3:name>", str(response.content.decode("utf-8")))[0]
 
-    pin = ''.join(secrets.choice("0123456789") for i in range(4))
+    pin = ''.join(sample("0123456789", 6))
 
-    log = {
-        "status": status,
-        "info": info,
-        "barcode": barcode,
-        "time": datetime.datetime.now(),
-        "pin": pin
-    }
+    log = find_db("data", {"barcode": barcode})
+
+    log["status"] = status
+    log["info"] = info
+    log["pin"] = pin
+    log["income_time"] = datetime.datetime.now()
 
     save_db(log, "income")
 
@@ -153,6 +184,7 @@ def income(barcode):
 
 
 def given(barcode):
+    barcode = barcode.replace("\n", "")
     url = "http://pls-test.post.kz/api/service/postamat?wsdl"
 
     headers = {'content-type': 'text/xml'}
@@ -168,7 +200,7 @@ def given(barcode):
         pprint(req)
         print("--------------------------------------------------")
 
-    response = requests.post(url, data=req.encode('utf-8'), headers=headers)
+    response = send_post(url, data=req.replace("\n", "").encode('utf-8'), headers=headers)
     print("=================================================")
     print("Принял ответ от сервера: ")
     print()
@@ -192,6 +224,7 @@ def given(barcode):
 
 
 def back(barcode):
+    barcode = barcode.replace("\n", "")
     url = "http://pls-test.post.kz/api/service/postamat?wsdl"
 
     headers = {'content-type': 'text/xml'}
@@ -207,7 +240,7 @@ def back(barcode):
         pprint(req)
         print("--------------------------------------------------")
 
-    response = requests.post(url, data=req.encode('utf-8'), headers=headers)
+    response = send_post(url, data=req.replace("\n", "").encode('utf-8'), headers=headers)
     print("=================================================")
     print("Принял ответ от сервера: ")
     print()
@@ -232,19 +265,31 @@ def back(barcode):
     return status, info
 
 
-def send_sms(phones, pins, place, barcode):
+def send_sms(barcode):
 
-    url = "http://92.46.190.22:8080/altsmsgate/altsmsgate.wsdl"
+    results = []
+    for bar in barcode:
+        results.append(find_db("income", {"barcode": bar.replace("\n", "")}))
+
+    place = find_db("data", {"barcode": barcode[0]})["address"]
+
+    # url = "http://92.46.190.22:8080/altsmsgate/altsmsgate.wsdl"
+    url = "http://92.46.190.22:8080/smsgate/?wsdl"
     headers = {'content-type': 'text/xml'}
-    file_name = "./templates/sms.xml"
-    text = "Робот почтальон приехал доставить Вам посылку [barcode]. Он ждет вас в [place] до [time]." \
-           " Введите [pin] для получения доступа на дисплее робота."
-    body = "<sch:Sms>" \
-            "<sch:SmsText>[text]</sch:SmsText>" \
-            "<sch:TelegramText>[text]</sch:TelegramText>" \
-            "<sch:PostKzText>[text]</sch:PostKzText>" \
-            "<sch:PhoneNumber>[phone]</sch:PhoneNumber>" \
-            "</sch:Sms>"
+    # file_name = "./templates/sms.xml"
+    # text = "Робот почтальон приехал доставить Вам посылку [barcode]. Он ждет вас в [place] до [time]." \
+    #        " Введите [pin] для получения доступа на дисплее робота."
+    # body = "<sch:Sms>" \
+    #         "<sch:SmsText>[text]</sch:SmsText>" \
+    #         "<sch:TelegramText>[text]</sch:TelegramText>" \
+    #         "<sch:PostKzText>[text]</sch:PostKzText>" \
+    #         "<sch:PhoneNumber>[phone]</sch:PhoneNumber>" \
+    #         "</sch:Sms>"
+    file_name = "./templates/sms_new.xml"
+
+    text = "Robot-kyrer ozhidaet Vas, polychite vashy posilky. Vremya ozhidaniya 20 minyt."
+
+    body = "<element><phoneNumber>[phone]</phoneNumber><message>[text]</message></element>"
 
     with open(file_name, "r") as file:
         req = file.read()
@@ -253,24 +298,20 @@ def send_sms(phones, pins, place, barcode):
 
     bodies = ""
 
-    for i in range(len(phones)):
+    for i in range(len(barcode)):
         text0 = text
-        text1 = text0.replace("[time]", time)\
-            .replace("[pin]", pins[i]).replace("[place]", place).replace("[barcode]", barcode[i])
-        body2 = body.replace("[text]", text1).replace("[phone]", phones[i])
+        text1 = text0.replace("[time]", time) \
+            .replace("[pin]", results[i]["pin"]).replace("[place]", place).replace("[barcode]", barcode[i])
+        body2 = body.replace("[text]", text1).replace("[phone]", results[i]["phone"])
         bodies += body2
 
     request = req.replace("[body]", bodies)
-    print("Sended request is:")
-    print()
-    pprint(request)
-    print()
-    response = requests.post(url, data=request.encode('utf-8'), headers=headers)
+    response = send_post(url, data=request.replace("\n", "").encode('utf-8'), headers=headers)
 
     print("=================================================")
     print("Отправляю запрос смс посылки на url: " + str(url))
     print()
-    pprint(req)
+    pprint(request)
     print("--------------------------------------------------")
     print("=================================================")
     print("Принял ответ от сервера: ")
@@ -278,8 +319,11 @@ def send_sms(phones, pins, place, barcode):
     printxml(response)
     print("--------------------------------------------------")
 
-    ids = re.findall("SmsId>([0-9]+)</ns2:AltSms", str(response.content.decode("utf-8")))
-    statuses = re.findall("AltSmsStatus>(.*?)</ns2:AltSmsStatus", str(response.content.decode("utf-8")))
+    # ids = re.findall("SmsId>([0-9]+)</ns2:AltSms", str(response.content.decode("utf-8")))
+    # statuses = re.findall("AltSmsStatus>(.*?)</ns2:AltSmsStatus", str(response.content.decode("utf-8")))
+
+    ids = re.findall("sId>([0-9]+)</sms", str(response.content.decode("utf-8")))
+    statuses = re.findall("<status>(.*?)</status>", str(response.content.decode("utf-8")))
 
     smses = []
 
@@ -290,64 +334,83 @@ def send_sms(phones, pins, place, barcode):
     }
 
     try:
-        for i in range(len(phones)):
-            smses.append({"phone": phones[i], "pin": pins[i], "barcode": barcode[i], "status": statuses[i]})
+        for i in range(len(barcode)):
+            smses.append({"phone": results[i]["phone"], "pin": results[i]["pin"], "barcode": barcode[i], "status": statuses[i], "smsid": ids[i]})
     except:
-        for i in range(len(phones)):
-            smses.append({"phone": phones[i], "pin": pins[i], "barcode": barcode[i], "status": None})
+        for i in range(len(barcode)):
+            smses.append({"phone": results[i]["phone"], "pin": results[i]["pin"], "barcode": barcode[i], "status": None, "smsid": ids[i]})
 
     log["sms"] = smses
 
     save_db(log, "sms")
 
 
-def send_sms_save(phones, pins, place, barcode):
+def send_sms_save(barcode):
 
-    url = "http://92.46.190.22:8080/altsmsgate/altsmsgate.wsdl"
+    results = []
+    for bar in barcode:
+        results.append(find_db("income", {"barcode": bar.replace("\n", "")}))
+
+    place = find_db("data", {"barcode": barcode[0]})["address"]
+
+    url = "http://92.46.190.22:8080/smsgate/?wsdl"
+    # url = "http://92.46.190.22:8080/altsmsgate/altsmsgate.wsdl"
     headers = {'content-type': 'text/xml'}
-    file_name = "./templates/sms.xml"
-    text = "Ваша посылка [barcode] передана роботу-курьеру на хранение, " \
-           "в ближайшее время ожидайте доставку по адресу [place]"
-    body = "<sch:Sms>" \
-            "<sch:SmsText>[text]</sch:SmsText>" \
-            "<sch:TelegramText>[text]</sch:TelegramText>" \
-            "<sch:PostKzText>[text]</sch:PostKzText>" \
-            "<sch:PhoneNumber>[phone]</sch:PhoneNumber>" \
-            "</sch:Sms>"
+    # file_name = "./templates/sms.xml"
+    # text = "Ваша посылка [barcode] передана роботу-курьеру на хранение, " \
+    #        "в ближайшее время ожидайте доставку по адресу [place]"
+    # body = "<sch:Sms>" \
+    #         "<sch:SmsText>[text]</sch:SmsText>" \
+    #         "<sch:TelegramText>[text]</sch:TelegramText>" \
+    #         "<sch:PostKzText>[text]</sch:PostKzText>" \
+    #         "<sch:PhoneNumber>[phone]</sch:PhoneNumber>" \
+    #         "</sch:Sms>"
+
+    file_name = "./templates/sms_new.xml"
+
+    text = "[time] Vam postupila posylka [barcode] " \
+           "peredano robot-kyrer: [place]" \
+           "Kod dostupa [pin]. V blizhaishee vremya ozhidaite."
+
+    body = "<element><phoneNumber>[phone]</phoneNumber><message>[text]</message></element>"
 
     with open(file_name, "r") as file:
         req = file.read()
 
-    time = (datetime.datetime.now() + datetime.timedelta(minutes=30)).strftime("%Y-%m-%d %H:%M")
+
+    time = (datetime.datetime.now() + datetime.timedelta(minutes=30)).strftime("%Y-%m-%d")
 
     bodies = ""
 
-    for i in range(len(phones)):
+    for i in range(len(barcode)):
         text0 = text
-        text1 = text0.replace("[place]", place).replace("[barcode]", barcode[i])
-        body2 = body.replace("[text]", text1).replace("[phone]", phones[i])
+        text1 = text0.replace("[time]", time) \
+            .replace("[pin]", results[i]["pin"]).replace("[place]", place).replace("[barcode]", barcode[i])
+        body2 = body.replace("[text]", text1).replace("[phone]", results[i]["phone"])
         bodies += body2
 
     request = req.replace("[body]", bodies)
-    print("Sended request is:")
-    print()
-    pprint(request)
-    print()
-    response = requests.post(url, data=request.encode('utf-8'), headers=headers)
+    response = send_post(url, data=request.replace("\n", "").encode('utf-8'), headers=headers)
 
     print("=================================================")
     print("Отправляю запрос смс хранения на url: " + str(url))
     print()
-    pprint(req)
+    pprint(request)
     print("--------------------------------------------------")
     print("=================================================")
     print("Принял ответ от сервера: ")
     print()
-    printxml(response)
+    try:
+        printxml(response)
+    except:
+        print(response)
     print("--------------------------------------------------")
 
-    ids = re.findall("SmsId>([0-9]+)</ns2:AltSms", str(response.content.decode("utf-8")))
-    statuses = re.findall("AltSmsStatus>(.*?)</ns2:AltSmsStatus", str(response.content.decode("utf-8")))
+    # ids = re.findall("SmsId>([0-9]+)</ns2:AltSms", str(response.content.decode("utf-8")))
+    # statuses = re.findall("AltSmsStatus>(.*?)</ns2:AltSmsStatus", str(response.content.decode("utf-8")))
+
+    ids = re.findall("sId>([0-9]+)</sms", str(response.content.decode("utf-8")))
+    statuses = re.findall("<status>(.*?)</status>", str(response.content.decode("utf-8")))
 
     smses = []
 
@@ -358,18 +421,24 @@ def send_sms_save(phones, pins, place, barcode):
     }
 
     try:
-        for i in range(len(phones)):
-            smses.append({"phone": phones[i], "pin": pins[i], "barcode": barcode[i], "status": statuses[i]})
+        for i in range(len(barcode)):
+            smses.append(
+                {"phone": results[i]["phone"], "pin": results[i]["pin"], "barcode": barcode[i], "status": statuses[i],
+                 "smsid": ids[i]})
     except:
-        for i in range(len(phones)):
-            smses.append({"phone": phones[i], "pin": pins[i], "barcode": barcode[i], "status": None})
+        for i in range(len(barcode)):
+            smses.append({"phone": results[i]["phone"], "pin": results[i]["pin"], "barcode": barcode[i], "status": None,
+                          "smsid": ids[i]})
 
     log["sms"] = smses
 
     save_db(log, "sms_save")
 
 
-if __name__ == "__main__":
+def diagnostics():
+    print("Удаляю старые данные с Базы Данных:")
+    client = MongoClient('mongodb://database:27017/')
+    client.drop_database('robot')
     print("Начало теста: " + str(datetime.datetime.now()))
     print("########################################")
     print()
@@ -379,7 +448,7 @@ if __name__ == "__main__":
     print("########################################")
     print()
     print()
-    phone = pus_data("KZ030601009KZ", "Astana HUB")
+    phone = pus_data("KZ160621000KZ", "Astana HUB")
     print()
     print()
     print("########################################")
@@ -387,7 +456,7 @@ if __name__ == "__main__":
     print("########################################")
     print()
     print()
-    status, info, pin = income("KZ030601009KZ")
+    status, info, pin = income("KZ160621000KZ")
     print()
     print()
     print("########################################")
@@ -395,7 +464,7 @@ if __name__ == "__main__":
     print("########################################")
     print()
     print()
-    send_sms_save(["77771111111"], [pin], "Astana HUB", ["KZ030601009KZ"])
+    send_sms_save(["KZ160621000KZ"])
     print()
     print()
     print("########################################")
@@ -403,7 +472,7 @@ if __name__ == "__main__":
     print("########################################")
     print()
     print()
-    send_sms(["77771111111"], [pin], "Astana HUB", ["KZ030601009KZ"])
+    send_sms(["KZ160621000KZ"])
     print()
     print()
     print("########################################")
@@ -411,7 +480,7 @@ if __name__ == "__main__":
     print("########################################")
     print()
     print()
-    given("KZ030601009KZ")
+    given("KZ160621000KZ")
     print()
     print()
     print("########################################")
@@ -419,7 +488,7 @@ if __name__ == "__main__":
     print("########################################")
     print()
     print()
-    income("KZ030601009KZ")
+    income("KZ160621000KZ")
     print()
     print()
     print("########################################")
@@ -427,7 +496,7 @@ if __name__ == "__main__":
     print("########################################")
     print()
     print()
-    back("KZ030601009KZ")
+    back("KZ160621000KZ")
     print()
     print()
     print("########################################")
@@ -435,3 +504,84 @@ if __name__ == "__main__":
     print("########################################")
     print()
     print()
+
+
+if __name__ == "__main__":
+
+    SERVER_ADDRESS = ('0.0.0.0', 8282)
+    # Настраиваем сокет
+    server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server_socket.bind(SERVER_ADDRESS)
+    server_socket.listen(1)
+    print('PUS client server is working')
+
+    while True:
+        connection, address = server_socket.accept()
+        print("new connection from {address}".format(address=address))
+
+        data = connection.recv(1024).decode('utf-8')
+        if data:
+            if data[0] == "c":
+                try:
+                    if pus_data(data.split("/")[1], data.split("/")[2]):
+                        connection.send(bytes(str("1"), encoding='UTF-8'))
+                    else:
+                        connection.send(bytes(str("0"), encoding='UTF-8'))
+                except:
+                    connection.send(bytes(str("e"), encoding='UTF-8'))
+
+            elif data[0] == "i":
+                try:
+                    status, info, pin = income(data.split("/")[1])
+                    if status[0] == "e" or status[0] == "E":
+                        answer = "0/" + str({"status": status, "pin": pin, "info": info})
+                        connection.send(bytes(str(answer), encoding='UTF-8'))
+                    else:
+                        answer = "1/" + str({"status": status, "pin": pin, "info": info})
+                        connection.send(bytes(str(answer), encoding='UTF-8'))
+                except:
+                    connection.send(bytes(str("e"), encoding='UTF-8'))
+
+            elif data[0] == "g":
+                try:
+                    status, info = given(data.split("/")[1])
+                    if status[0] == "e" or status[0] == "E":
+                        answer = "0/" + str({"status": status, "info": info})
+                        connection.send(bytes(str(answer), encoding='UTF-8'))
+                    else:
+                        answer = "1/" + str({"status": status, "info": info})
+                        connection.send(bytes(str(answer), encoding='UTF-8'))
+                except:
+                    connection.send(bytes(str("e"), encoding='UTF-8'))
+
+            elif data[0] == "b":
+                try:
+                    status, info = back(data.split("/")[1])
+                    if status[0] == "e" or status[0] == "E":
+                        answer = "0/" + str({"status": status, "info": info})
+                        connection.send(bytes(str(answer), encoding='UTF-8'))
+                    else:
+                        answer = "1/" + str({"status": status, "info": info})
+                        connection.send(bytes(str(answer), encoding='UTF-8'))
+                except:
+                    connection.send(bytes(str("e"), encoding='UTF-8'))
+
+            elif data[0] == "s":
+                request = json.loads(data.split("/")[1])
+                try:
+                    send_sms(request)
+                    connection.send(bytes(str("1"), encoding='UTF-8'))
+                except:
+                    connection.send(bytes(str("e"), encoding='UTF-8'))
+
+            elif data[0] == "k":
+                request = json.loads(data.split("/")[1])
+                try:
+                    send_sms_save(request)
+                    connection.send(bytes(str("1"), encoding='UTF-8'))
+                except:
+                    connection.send(bytes(str("e"), encoding='UTF-8'))
+
+        connection.close()
+    # print(os.system("ls -al"))
+    # diagnostics()

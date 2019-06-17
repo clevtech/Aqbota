@@ -62,7 +62,7 @@ void setup()
 
     while (!nh.connected())
     {
-        stopBase();
+        stopBaseInit();
         nh.spinOnce();
     }
     nh.loginfo("MOTOR CONTROLLER IS CONNECTED");
@@ -84,7 +84,7 @@ void loop()
     //this block stops the motor when no command is received
     if ((millis() - g_prev_command_time) >= 400)
     {
-        stopBase();
+        stopBaseInit();
     }
 
     //call all the callbacks waiting to be called
@@ -161,21 +161,20 @@ void KinectRelay()
 
 void moveBase()
 {
-  //get the required rpm for each motor based on required velocities, and base used
-  // Kinematics::rpm req_rpm = kinematics.getRPM(g_req_linear_vel_x, g_req_linear_vel_y, g_req_angular_vel_z);
-  // Kinematics::rpm now_rpm = kinematics.getRPM(linear_vel_x, linear_vel_y, angular_vel_z);
-
-
-    // printVEL(g_req_linear_vel_x, g_req_linear_vel_y, g_req_angular_vel_z);
-
-    // printPWM1(now_rpm.motor1);
-    // printPWM2(now_rpm.motor2);
-
     KinectRelay();
     // printPWM1(RPM1);
     // printPWM2(RPM2);
     motor1_controller.spin(RPM1);
     motor2_controller.spin(RPM2);
+}
+
+
+void stopBaseInit(){
+  motor1_controller.spin(0);
+  motor2_controller.spin(0);
+  g_req_linear_vel_x = 0;
+  g_req_linear_vel_y = 0;
+  g_req_angular_vel_z = 0;
 }
 
 
@@ -186,6 +185,7 @@ void stopBase()
     g_req_linear_vel_x = 0;
     g_req_linear_vel_y = 0;
     g_req_angular_vel_z = 0;
+
 }
 
 

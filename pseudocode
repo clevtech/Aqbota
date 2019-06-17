@@ -1,0 +1,31 @@
+def GPS loop:
+    Check GPS
+    Take direction and distance
+
+
+def IMU loop:
+    if obstacle?
+        GoAwayFromIt
+    else:
+        turn to direction (+- 10 degrees)
+        if distance > 3m:
+            goForward
+        else:
+            stopWaitToCallibrate
+
+def GoAwayFromIt:
+    if obstacle in zone0:
+        stop
+        HELP!
+    if obstacle in zone1:
+        turnLeft (+90deg)
+        GoFWD(2sec)
+        turnRight (-90deg)
+    if obstacle in zone2:
+        turnRight (+90deg)
+        GoFWD(2sec)
+        turnLeft (-90deg)
+    if obstacle zone3:
+        smoothLeftTillObstacle
+        turnToInitialPose
+

@@ -1,0 +1,11 @@
+[Unit]
+Description=TCP RC server
+[Install]
+WantedBy=multi-user.target
+[Service]
+User=root
+PermissionsStartOnly=true
+ExecStart=/RCAqbota/server.py
+TimeoutSec=10
+Restart=on-failure
+RuntimeDirectoryMode=755
