@@ -1,0 +1,46 @@
+version: "3"
+services:
+  database:
+    restart: always
+    image: mongo:3.0.2
+    volumes:
+      - ./:/robot_volume
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+  pus-client:
+    restart: always
+    build: ./PUS
+    command: python3 -u ./pus.py
+    volumes:
+      - ./:/robot_volume/PUS/
+    links:
+      - database
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    depends_on:
+      - database
+  interface:
+    restart: always
+    build: ./interface
+    command: python3 -u ./interface.py
+    ports:
+      - "8888:8888"
+    volumes:
+      - ./:/robot_volume/interface/
+    links:
+      - database
+      - pus-client
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "1m"
+        max-file: "10"
+    depends_on:
+      - database
+      - pus-client

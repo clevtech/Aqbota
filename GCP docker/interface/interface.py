@@ -26,29 +26,50 @@ global passcode, timer, telegram, tripID
 # Main functions
 
 def open_door(id):
-    data = str(id).replace("\n", '')
-    pus = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    pus.connect(('tcp-server', 6767))
-    while 1:
-        try:
-            pus.send(bytes(str(data), encoding='UTF-8'))
-            while 1:
-                try:
-                    ans = pus.recv(5000)
-                    if ans:
-                        return ans.decode('utf-8')
-                except:
-                    pass
-        except:
-            pass
+    client = MongoClient('mongodb://database:27017/')
+    db = client['robot']
+    collection = db["doors"]
+    result = collection.find_one({})
+    result[str(id)] = 1
+    collection.delete_many({})
+    collection.insert_one(result)
+
+
+def init_doors():
+    client = MongoClient('mongodb://database:27017/')
+    db = client['robot']
+    collection = db["doors"]
+    cell = {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
+    }
+    collection.delete_many({})
+    collection.insert_one(cell)
 
 
 def send_tlg_msg_checkpoint():
     head = "https://api.telegram.org/bot783776854:AAEYHSm-J0H8BOz1XK3irggOcGxc90K_stI/sendMessage?chat_id=-367528081&text="
     pin = ''.join(sample("0123456789", 4))
     msg = "Я приехал? Если да - ответь мне этим кодом: " + pin
-    time.sleep(30)
-    return True
+    try:
+        while 1:
+            try:
+                requests.get(head+msg)
+                break
+            except:
+                pass
+        while 1:
+            time.sleep(10)
+            answer = requests.get("https://api.telegram.org/bot783776854:AAEYHSm-J0H8BOz1XK3irggOcGxc90K_stI/getUpdates")
+            if answer:
+                text = json.loads(answer.content.decode('utf-8'))["result"][-1]["message"]["text"]
+                if text == pin:
+                    requests.get(head + "Okay, иду дальше по алгоритму")
+                    return True
+    except:
+        pass
 
 
 def send_tlg_msg(msg):
@@ -81,20 +102,6 @@ def PUS_client(data):
             pass
 
 
-# Get IP as string of the host machine
-def get_ip():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    try:
-        # doesn't even have to be reachable
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-    except:
-        IP = '127.0.0.1'
-    finally:
-        s.close()
-    return IP
-
-
 def init_all():
     client = MongoClient('mongodb://database:27017/')
     db = client['robot']
@@ -111,6 +118,7 @@ def init_all():
         passcode = "0605"
         timer = 20
         telegram = None
+    init_doors()
 
 
 def check_weather():
@@ -458,8 +466,27 @@ def give_back(cellid):
         "given.html", **locals())
 
 
+@app.route("/doors/", methods=["GET", "POST"])
+def give_back(cellid):
+    client = MongoClient('mongodb://database:27017/')
+    db = client['robot']
+    collection = db["doors"]
+    result = collection.find_one({})
+
+    cell = {
+        "0": 0,
+        "1": 0,
+        "2": 0,
+        "3": 0
+    }
+    collection.delete_many({})
+    collection.insert_one(cell)
+
+    return str(result)
+
+
 # Main flask app
 if __name__ == "__main__":
     init_all()
-    app.run(host="0.0.0.0", port=8888, debug=True)
+    app.run(debug=True,host='0.0.0.0',port=int(os.environ.get('PORT', 8080)))
     # PUS_client()
